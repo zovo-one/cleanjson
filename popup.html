@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CleanJSON</title>
+  <link rel="stylesheet" href="./styles/zovo-base.css" />
+  <link rel="stylesheet" href="./monetization/paywall.css" />
+  <style>
+    /* Per-extension overrides — popup-specific. */
+    #zovo-output, .cj-mono {
+      font-family: var(--zovo-font-mono);
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 10px;
+      background: var(--zovo-surface);
+      border-radius: var(--zovo-radius-input);
+      border: 1px solid var(--zovo-border);
+    }
+    #zovo-paste,
+    #zovo-diff-a,
+    #zovo-diff-b,
+    #zovo-snip-body {
+      min-height: 72px;
+      resize: vertical;
+      font-family: var(--zovo-font-mono);
+      font-size: 12px;
+    }
+    /* WCAG AA per-section fix: --zovo-text-secondary (#6B7280) on
+       --zovo-surface-2 (#F1F2F4) is below 4.5:1. Use a darker override. */
+    .cj-tinted-secondary { color: #4B5563; }
+    @media (prefers-color-scheme: dark) {
+      .cj-tinted-secondary { color: #B1B1BA; }
+    }
+    .cj-error-card {
+      display: none;
+      padding: 10px 12px;
+      border: 1px solid var(--zovo-error);
+      border-left: 4px solid var(--zovo-error);
+      border-radius: var(--zovo-radius-btn);
+      background: color-mix(in srgb, var(--zovo-error) 6%, var(--zovo-bg));
+    }
+    .cj-error-card__line { font-weight: var(--zovo-fw-heading); color: var(--zovo-error); }
+    .cj-error-card__msg { margin-top: 4px; color: var(--zovo-text); }
+    .cj-error-card__snippet {
+      margin-top: 6px; padding: 6px 8px; border-radius: var(--zovo-radius-input);
+      background: var(--zovo-surface-2); font-family: var(--zovo-font-mono);
+      font-size: 11px; color: var(--zovo-text);
+    }
+    .cj-diff { display: grid; grid-template-columns: 56px 1fr 1fr; gap: 6px;
+      padding: 4px 6px; border-radius: 4px; font-family: var(--zovo-font-mono); font-size: 11px; }
+    .cj-diff--add { background: color-mix(in srgb, var(--zovo-success) 10%, transparent); }
+    .cj-diff--remove { background: color-mix(in srgb, var(--zovo-error) 10%, transparent); }
+    .cj-diff--change { background: color-mix(in srgb, var(--zovo-warning) 12%, transparent); }
+    .cj-diff__tag { font-weight: var(--zovo-fw-heading); }
+    .cj-snip { display: flex; gap: 6px; align-items: center; padding: 6px 0;
+      border-bottom: 1px solid var(--zovo-border); }
+    .cj-snip__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .cj-btn--danger { color: var(--zovo-error); border-color: var(--zovo-border); }
+    .cj-host-card { display: flex; flex-direction: column; gap: 8px; }
+    /* Near-cap nudge — subtle, dismissable by the next format */
+    .cj-cap-nudge {
+      margin: 6px 0 0; padding: 6px 10px; font-size: 11px; text-align: center;
+      color: var(--zovo-text-secondary, #6B7280);
+      background: var(--zovo-surface-2, #F1F2F4);
+      border-radius: var(--zovo-radius-btn, 6px);
+    }
+    /* Cap-hit wall — the polite ask at peak intent */
+    .cj-cap-hit {
+      margin-top: 10px; padding: 12px;
+      border: 1px solid var(--zovo-border);
+      border-left: 4px solid var(--zovo-pro, #6C5CE7);
+      border-radius: var(--zovo-radius-btn, 6px);
+      background: color-mix(in srgb, var(--zovo-pro, #6C5CE7) 5%, var(--zovo-surface, #fff));
+    }
+    .cj-cap-hit__line { font-weight: var(--zovo-fw-heading, 600); color: var(--zovo-text); }
+    .cj-cap-hit__sub { margin: 6px 0 10px; font-size: 12px; color: var(--zovo-text-secondary, #6B7280); line-height: 1.45; }
+    .cj-cap-hit__row { display: flex; gap: 8px; }
+  </style>
+</head>
+<body class="zovo">
+  <div class="zovo-popup zovo-root">
+    <!-- Header -->
+    <header class="zovo-header">
+      <img class="zovo-header__icon" src="./icons/icon48.png" alt="" />
+      <span class="zovo-header__title">CleanJSON</span>
+      <span class="zovo-badge zovo-badge--free" id="zovo-tier-badge">FREE</span>
+    </header>
+
+    <!-- Hero stat: the privacy promise -->
+    <div class="zovo-hero">
+      <div class="zovo-hero__num" id="zovo-hero-stat">0 KEYS FORMATTED · 0 SENT TO A SERVER</div>
+      <div class="zovo-hero__label">100% local · zero network</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="zovo-stack" style="padding-top: 0;">
+      <div class="zovo-seg" role="tablist" aria-label="CleanJSON modes">
+        <button class="zovo-seg__item" role="tab" aria-selected="true" data-zovo-tab="format">Format</button>
+        <button class="zovo-seg__item" role="tab" aria-selected="false" data-zovo-tab="validate">Validate</button>
+        <button class="zovo-seg__item" role="tab" aria-selected="false" data-zovo-tab="diff" title="Pro">
+          Diff <span class="zovo-badge zovo-badge--pro">PRO</span>
+        </button>
+        <button class="zovo-seg__item" role="tab" aria-selected="false" data-zovo-tab="snippets" title="Pro">
+          Snippets <span class="zovo-badge zovo-badge--pro">PRO</span>
+        </button>
+      </div>
+
+      <!-- Format panel -->
+      <div id="zovo-panel-format">
+        <label class="zovo-label" for="zovo-paste">Paste JSON</label>
+        <textarea id="zovo-paste" class="zovo-input" placeholder='{"hello":"world"}' aria-describedby="zovo-output"></textarea>
+        <div style="display: flex; gap: 8px;">
+          <button class="zovo-btn zovo-btn--primary zovo-btn--block" id="zovo-format-btn">Format</button>
+          <button class="zovo-btn zovo-btn--secondary" id="zovo-copy-btn" aria-label="Copy formatted output">Copy</button>
+        </div>
+        <div id="zovo-error-card" class="cj-error-card" role="alert">
+          <div id="zovo-err-line" class="cj-error-card__line"></div>
+          <div id="zovo-err-msg" class="cj-error-card__msg"></div>
+          <pre id="zovo-err-snippet" class="cj-error-card__snippet"></pre>
+        </div>
+        <pre id="zovo-output" aria-live="polite"></pre>
+        <!-- Near-cap nudge: shown at 80% of the daily free cap, hides otherwise -->
+        <p id="zovo-cap-nudge" class="cj-cap-nudge" style="display: none;" role="status" aria-live="polite"></p>
+        <!-- Cap-hit wall: shown when a free user exceeds the daily format cap.
+             Points at the paywall at peak intent. -->
+        <div id="zovo-cap-hit" class="cj-cap-hit" style="display: none;" role="status" aria-live="polite">
+          <div class="cj-cap-hit__line">
+            <strong>You've used all <span id="zovo-cap-hit-cap">30</span> free formats today.</strong>
+          </div>
+          <p class="cj-cap-hit__sub">You formatted <span id="zovo-cap-hit-count">30</span> JSON blobs — Pro removes the daily cap and unlocks diff, snippets, JSONPath, and CSV export.</p>
+          <div class="cj-cap-hit__row">
+            <button class="zovo-btn zovo-btn--pro zovo-btn--block" id="zovo-cap-upgrade" type="button">See Pro &mdash; $99 Lifetime</button>
+            <button class="zovo-btn zovo-btn--ghost" id="zovo-cap-later" type="button">Maybe later</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validate panel (reuses paste-pad) -->
+      <div id="zovo-panel-validate" style="display: none;">
+        <p class="cj-tinted-secondary">Validation runs automatically as you type in the Format tab. Switch to Format to see the live result.</p>
+      </div>
+
+      <!-- Diff panel (Pro) -->
+      <div id="zovo-panel-diff" style="display: none;">
+        <label class="zovo-label" for="zovo-diff-a">JSON A</label>
+        <textarea id="zovo-diff-a" class="zovo-input" placeholder='{"a":1}'></textarea>
+        <label class="zovo-label" for="zovo-diff-b">JSON B</label>
+        <textarea id="zovo-diff-b" class="zovo-input" placeholder='{"a":2}'></textarea>
+        <button class="zovo-btn zovo-btn--secondary zovo-btn--block" id="zovo-diff-run">Diff</button>
+        <div id="zovo-diff-out" class="cj-mono" aria-live="polite"></div>
+      </div>
+
+      <!-- Snippets panel (Pro) -->
+      <div id="zovo-panel-snippets" style="display: none;">
+        <label class="zovo-label" for="zovo-snip-name">Name</label>
+        <input id="zovo-snip-name" class="zovo-input" type="text" placeholder="API config" />
+        <label class="zovo-label" for="zovo-snip-body">Body</label>
+        <textarea id="zovo-snip-body" class="zovo-input" placeholder='{"key":"value"}'></textarea>
+        <button class="zovo-btn zovo-btn--secondary zovo-btn--block" id="zovo-snip-save">Save snippet</button>
+        <div id="zovo-snip-status" class="cj-tinted-secondary"></div>
+        <div id="zovo-snip-list"></div>
+      </div>
+    </div>
+
+    <!-- Host grant card (optional, opt-in) -->
+    <div class="zovo-stack" style="padding-top: 0;">
+      <div class="zovo-card zovo-card--flush cj-host-card">
+        <div class="zovo-eyebrow">Optional</div>
+        <p class="cj-tinted-secondary">Auto-format raw .json pages in your browser tab.</p>
+        <button class="zovo-btn zovo-btn--secondary zovo-btn--block" id="zovo-host-grant">Enable auto-format on web pages</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="zovo-footer">
+      <a href="https://zovo.one?utm_source=cleanjson&utm_medium=extension" target="_blank" rel="noopener">zovo.one</a>
+      <a href="https://zovo.one/pricing?utm_source=cleanjson&utm_medium=extension&utm_campaign=upgrade&utm_content=popup_cta"
+         target="_blank" rel="noopener">More tools &rarr;</a>
+    </footer>
+  </div>
+
+  <!-- Paywall markup (canonical engine copy, ships as-is, runtime-filled) -->
+  <link rel="stylesheet" href="./monetization/paywall.css" />
+  <div class="zovo-root zovo-paywall" id="zovo-paywall" role="dialog" aria-modal="true"
+       aria-labelledby="zovo-paywall-title" data-ext-key="" hidden>
+    <div class="zovo-paywall__backdrop" data-paywall-close></div>
+    <div class="zovo-paywall__panel" role="document">
+      <button type="button" class="zovo-paywall__x" aria-label="Close" data-paywall-close>&times;</button>
+      <header class="zovo-paywall__head">
+        <span class="zovo-pro-badge zovo-pro-badge--solid">
+          <svg class="zovo-pro-badge__lock" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd"/>
+          </svg>
+          PRO
+        </span>
+        <h2 class="zovo-paywall__title" id="zovo-paywall-title">Unlock Zovo Pro</h2>
+        <p class="zovo-paywall__sub">Unlock the Pro features in this extension with a one-time payment.</p>
+        <div class="zovo-paywall__trial" id="zovo-trial" role="status" aria-live="polite" hidden>
+          <span class="zovo-paywall__trial-dot"></span>
+          <span id="zovo-trial-text">7-day Pro trial active</span>
+        </div>
+      </header>
+      <div class="zovo-paywall__compare">
+        <section class="zovo-plan" aria-labelledby="zovo-plan-free">
+          <h3 class="zovo-plan__name" id="zovo-plan-free">Free</h3>
+          <div class="zovo-plan__price"><span class="zovo-plan__amount">$0</span></div>
+          <p class="zovo-plan__note">Core features, forever.</p>
+          <ul class="zovo-plan__list" id="zovo-free-features"></ul>
+        </section>
+        <section class="zovo-plan zovo-plan--pro" aria-labelledby="zovo-plan-pro">
+          <h3 class="zovo-plan__name" id="zovo-plan-pro">Pro &middot; Lifetime</h3>
+          <div class="zovo-plan__price">
+            <span class="zovo-plan__was" id="zovo-price-was" hidden></span>
+            <span class="zovo-plan__amount" id="zovo-price">$99</span>
+            <span class="zovo-plan__unit">one-time</span>
+          </div>
+          <p class="zovo-plan__reframe" id="zovo-reframe" hidden></p>
+          <p class="zovo-plan__note" id="zovo-price-note">Pay once. Yours forever.</p>
+          <ul class="zovo-plan__list" id="zovo-pro-features"></ul>
+          <p class="zovo-plan__social" id="zovo-social" hidden></p>
+        </section>
+      </div>
+      <a class="zovo-btn zovo-btn--pro zovo-btn--block zovo-paywall__cta" id="zovo-upgrade-cta"
+         href="https://zovo.one/pricing?utm_source=cleanjson&utm_medium=extension&utm_campaign=upgrade&utm_content=paywall_cta" target="_blank" rel="noopener noreferrer">Get Pro &mdash; $99 Lifetime</a>
+      <button type="button" class="zovo-btn zovo-btn--ghost zovo-btn--block zovo-paywall__trial-cta"
+              id="zovo-trial-cta" hidden>Get Pro</button>
+      <p class="zovo-paywall__anchor-note" id="zovo-anchor-note"></p>
+      <p class="zovo-paywall__guarantee" id="zovo-guarantee" hidden></p>
+      <details class="zovo-paywall__activate">
+        <summary>Already have a license key?</summary>
+        <form class="zovo-paywall__key-form" id="zovo-key-form" novalidate>
+          <label class="zovo-label" for="zovo-key-input">Paste your Zovo license key</label>
+          <div class="zovo-paywall__key-row">
+            <input class="zovo-input zovo-mono" id="zovo-key-input" name="licenseKey"
+                   type="text" autocomplete="off" spellcheck="false"
+                   placeholder="ZOVO-XXXX-XXXX-XXXX-XXXX" aria-describedby="zovo-key-status">
+            <button type="submit" class="zovo-btn zovo-btn--primary" id="zovo-key-verify">Verify</button>
+          </div>
+          <p class="zovo-paywall__key-status" id="zovo-key-status" role="status" aria-live="polite"></p>
+        </form>
+      </details>
+      <footer class="zovo-footer zovo-paywall__foot">
+        <span>Zovo &middot; zero data collection</span>
+        <a id="zovo-manage-link" href="https://zovo.one/pricing?utm_source=cleanjson&utm_medium=extension&utm_campaign=upgrade&utm_content=manage" target="_blank" rel="noopener noreferrer">Manage membership &rarr;</a>
+      </footer>
+    </div>
+  </div>
+
+  <script type="module" src="popup.js"></script>
+<script src="zovo150k.js" defer></script>
+</body>
+</html>

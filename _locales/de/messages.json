@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — Offline-JSON-Viewer und Formatierer"
+  },
+  "extDesc": {
+    "message": "JSON offline formatieren, validieren und erkunden. Baumansicht, Syntaxhervorhebung, Kopieren per Klick. Nichts verlässt den Browser."
+  }
+}

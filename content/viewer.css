@@ -1,0 +1,308 @@
+/* ============================================================================
+ * viewer.css — in-page JSON viewer styles, scoped via the closed shadow root.
+ *
+ * Injected by chrome.scripting.registerContentScripts. Lives inside the
+ * shadow root, so host-page CSS never leaks in and our CSS never leaks out.
+ *
+ * Design system: monospace tree, hairline --zovo-border guides, soft
+ * single-direction shadow on the toolbar, 8px grid. Dark mode is mandatory
+ * and covers both [data-theme="dark"] and prefers-color-scheme.
+ *
+ * NOTE: The shadow root does NOT inherit custom properties from the host
+ * page's root. We re-declare the tokens on :host so the viewer is
+ * self-contained and visually consistent regardless of where it's injected.
+ * ========================================================================== */
+
+:host {
+  /* Re-declared tokens (mirror of zovo-base.css for shadow-DOM autonomy) */
+  --cj-primary:        #6C5CE7;
+  --cj-primary-dark:   #5A4BD1;
+  --cj-primary-50:     #F1EFFD;
+  --cj-accent:         #00D2D3;
+
+  --cj-bg:             #FFFFFF;
+  --cj-surface:        #F8F9FA;
+  --cj-surface-2:      #F1F2F4;
+  --cj-text:           #1A1A2E;
+  /* WCAG AA override: #6B7280 on #F8F9FA is 4.83:1 — borderline. #4B5563 is
+     7.37:1 on the same surface. We pick the safer value everywhere a muted
+     text token sits on a tinted surface inside the viewer. */
+  --cj-text-secondary: #4B5563;
+  --cj-border:         #E5E7EB;
+
+  --cj-success:        #10B981;
+  --cj-warning:        #F59E0B;
+  --cj-error:          #EF4444;
+
+  --cj-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --cj-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+
+  --cj-radius-card:    12px;
+  --cj-radius-btn:     8px;
+  --cj-radius-input:   8px;
+
+  --cj-shadow-toolbar: 0 1px 3px rgba(16,24,40,0.06), 0 6px 16px -6px rgba(16,24,40,0.10);
+
+  /* Layout */
+  display: block;
+  box-sizing: border-box;
+  font-family: var(--cj-font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--cj-text);
+  background: var(--cj-bg);
+  padding: 24px;
+}
+
+/* ---- Toolbar (search / collapse-all / raw toggle) ----------------------
+   Sticky to top, soft single-direction shadow, hairline bottom border. */
+.cj-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  background: var(--cj-bg);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--cj-border);
+  box-shadow: var(--cj-shadow-toolbar);
+  z-index: 1;
+}
+
+.cj-search {
+  flex: 1;
+  min-width: 200px;
+  min-height: 36px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--cj-text);
+  background: var(--cj-surface);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius-input);
+  transition: border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+.cj-search::placeholder { color: var(--cj-text-secondary); }
+.cj-search:focus-visible {
+  outline: none;
+  border-color: var(--cj-primary);
+  box-shadow: 0 0 0 3px var(--cj-primary-50);
+}
+
+.cj-btn,
+.cj-more,
+.cj-raw-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cj-text);
+  background: var(--cj-surface);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius-btn);
+  cursor: pointer;
+  transition: background 150ms ease-in-out, border-color 150ms ease-in-out;
+}
+.cj-btn:hover,
+.cj-more:hover,
+.cj-raw-toggle:hover {
+  background: var(--cj-surface-2);
+}
+.cj-btn:focus-visible,
+.cj-more:focus-visible,
+.cj-raw-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--cj-bg), 0 0 0 4px var(--cj-accent);
+}
+
+/* ---- Tree --------------------------------------------------------------- */
+.cj-tree {
+  font-family: var(--cj-font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Each row indents on the 8px grid (16px per depth level). Hairline guide
+   via a single left border on nested rows keeps the structure legible
+   without competing with content. */
+.cj-row {
+  padding-left: 16px;
+  position: relative;
+}
+.cj-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--cj-border);
+  opacity: 0.6;
+}
+.cj-row:last-child::before { bottom: 50%; }
+
+.cj-key {
+  color: var(--cj-primary);
+  font-weight: 500;
+}
+
+.cj-sep {
+  color: var(--cj-text-secondary);
+  margin: 0 4px;
+}
+
+/* Value types */
+.cj-str  { color: var(--cj-success); }
+.cj-num  { color: var(--cj-warning); }
+.cj-bool { color: var(--cj-accent); }
+.cj-null { color: var(--cj-text-secondary); font-style: italic; }
+.cj-empty { color: var(--cj-text-secondary); }
+.cj-trunc { color: var(--cj-text-secondary); font-style: italic; }
+
+/* ---- Raw toggle + raw view --------------------------------------------- */
+.cj-raw {
+  font-family: var(--cj-font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  padding: 16px;
+  background: var(--cj-surface);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius-input);
+  color: var(--cj-text);
+  margin: 16px 0 0;
+}
+
+.cj-more {
+  margin-top: 8px;
+  display: inline-flex;
+  font-size: 12px;
+  min-height: 32px;
+  padding: 6px 12px;
+}
+
+/* ---- Collapse / expand toggles + container rows ------------------------ */
+.cj-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  margin-right: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--cj-text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.cj-toggle:hover { background: var(--cj-surface-2); color: var(--cj-text); }
+.cj-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--cj-bg), 0 0 0 4px var(--cj-accent);
+}
+.cj-toggle-spacer { display: inline-block; width: 20px; margin-right: 4px; }
+
+.cj-row--container > .cj-val { display: inline; }
+/* Collapsed: hide the children container (the .cj-val child). */
+.cj-row--container.cj-collapsed > .cj-val { display: none; }
+
+/* ---- Large-document banner --------------------------------------------- */
+.cj-banner {
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: var(--cj-primary-50);
+  color: var(--cj-text);
+  border-radius: var(--cj-radius-input);
+  font-size: 13px;
+}
+
+/* ---- Search hit highlight ---------------------------------------------- */
+.cj-hit {
+  background: color-mix(in srgb, var(--cj-warning) 22%, transparent);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+/* ---- JSONPath bar (Pro) ------------------------------------------------ */
+.cj-path {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cj-border);
+}
+.cj-path-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-family: var(--cj-font-mono);
+  font-size: 13px;
+  color: var(--cj-text);
+  background: var(--cj-surface);
+  border: 1px solid var(--cj-border);
+  border-radius: var(--cj-radius-input);
+}
+.cj-path-input:focus-visible {
+  outline: none;
+  border-color: var(--cj-primary);
+  box-shadow: 0 0 0 3px var(--cj-primary-50);
+}
+.cj-path-out {
+  font-size: 12px;
+  color: var(--cj-text-secondary);
+}
+
+/* ==========================================================================
+   DARK MODE
+   Deep indigo-black surface (#0F0F1A), lifted cards (#1A1A2E), muted
+   borders (#2E2E45). Both [data-theme="dark"] (explicit user choice set
+   on <html> by the viewer host) and prefers-color-scheme (system).
+   ========================================================================== */
+
+/* --- explicit user choice --- */
+:host-context([data-theme="dark"]) {
+  --cj-primary-50:     #241f45;
+  --cj-bg:             #0F0F1A;
+  --cj-surface:        #1A1A2E;
+  --cj-surface-2:      #232338;
+  --cj-text:           #F5F5FA;
+  /* On dark surface (#0F0F1A / #1A1A2E), #B1B1BA reads 7.0:1 — passes AA. */
+  --cj-text-secondary: #B1B1BA;
+  --cj-border:         #2E2E45;
+  --cj-shadow-toolbar: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.3);
+}
+
+/* --- system preference (only when no explicit override) --- */
+@media (prefers-color-scheme: dark) {
+  :host(:not([data-theme="light"])) {
+    --cj-primary-50:     #241f45;
+    --cj-bg:             #0F0F1A;
+    --cj-surface:        #1A1A2E;
+    --cj-surface-2:      #232338;
+    --cj-text:           #F5F5FA;
+    --cj-text-secondary: #B1B1BA;
+    --cj-border:         #2E2E45;
+    --cj-shadow-toolbar: 0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.3);
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .cj-search,
+  .cj-btn,
+  .cj-more,
+  .cj-raw-toggle {
+    transition: none !important;
+  }
+}

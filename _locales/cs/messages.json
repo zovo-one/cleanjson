@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — offline prohlížeč a formátovač JSON"
+  },
+  "extDesc": {
+    "message": "Formátujte, ověřujte a procházejte JSON offline. Stromové zobrazení, zvýraznění syntaxe, kopírování na klik. Nic neopustí prohlížeč."
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — Trình xem và định dạng JSON ngoại tuyến"
+  },
+  "extDesc": {
+    "message": "Định dạng, xác thực và khám phá JSON ngoại tuyến. Chế độ xem cây, tô sáng cú pháp, sao chép một cú nhấp."
+  }
+}

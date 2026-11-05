@@ -1,0 +1,42 @@
+{
+  "extName": {
+    "message": "CleanJSON — 离线 JSON 查看器",
+    "description": "Extension name shown in chrome://extensions and the Web Store."
+  },
+  "extDesc": {
+    "message": "100% 本地 JSON 查看器。格式化、折叠、校验。数据不离开浏览器。",
+    "description": "Short description shown under the extension name."
+  },
+  "contextMenuFormatSelected": {
+    "message": "Format selected JSON with CleanJSON",
+    "description": "Right-click menu item shown when text is selected."
+  },
+  "popupFormatButton": {
+    "message": "Format",
+    "description": "Primary button label in the popup paste-pad."
+  },
+  "popupPasteLabel": {
+    "message": "Paste JSON",
+    "description": "Label above the paste-pad textarea."
+  },
+  "heroStatLabel": {
+    "message": "100% local · zero network",
+    "description": "Caption beneath the hero counter."
+  },
+  "onboardingStep1Title": {
+    "message": "Paste any JSON. We format it instantly, in your browser.",
+    "description": "Body copy of onboarding step 1."
+  },
+  "onboardingStep2Title": {
+    "message": "Auto-format raw .json URLs in your browser tab. Off by default — only enable if you want it.",
+    "description": "Body copy of onboarding step 2 (host grant)."
+  },
+  "onboardingEnableAutoFormat": {
+    "message": "Enable auto-format on web pages",
+    "description": "Button label for the host-grant request."
+  },
+  "onboardingFinish": {
+    "message": "Finish",
+    "description": "Button label for finishing onboarding."
+  }
+}

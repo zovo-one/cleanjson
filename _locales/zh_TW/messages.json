@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — 離線 JSON 檢視器與格式化工具"
+  },
+  "extDesc": {
+    "message": "離線格式化、驗證與瀏覽 JSON。樹狀檢視、語法標示、一鍵複製。任何資料都不會離開您的瀏覽器。"
+  }
+}

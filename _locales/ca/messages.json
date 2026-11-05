@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — Visor i formatador de JSON sense connexió"
+  },
+  "extDesc": {
+    "message": "Formata, valida i explora JSON sense connexió. Vista d'arbre, ressaltat de sintaxi, còpia amb un clic. Res no surt del navegador."
+  }
+}

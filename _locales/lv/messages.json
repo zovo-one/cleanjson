@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — bezsaistes JSON skatītājs un formatētājs"
+  },
+  "extDesc": {
+    "message": "Formatējiet, pārbaudiet un pārlūkojiet JSON bezsaistē. Koka skats, sintakses izcelšana, kopēšana ar vienu klikšķi."
+  }
+}

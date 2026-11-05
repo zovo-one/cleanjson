@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — Penampil & Pemformat JSON Offline"
+  },
+  "extDesc": {
+    "message": "Format & validasi JSON secara offline. Tampilan pohon, penyorotan sintaks, salin sekali klik. Tidak ada yang keluar dari browser."
+  }
+}

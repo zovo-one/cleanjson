@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome to CleanJSON</title>
+<link rel="stylesheet" href="../../styles/zovo-base.css">
+<style>
+:root{
+  --p:#6C5CE7; --p-dark:#5A4BD1; --p-50:#F1EFFD; --teal:#00D2D3;
+  --gold:#F59E0B; --gold-dark:#D97706; --on-gold:#1A1A2E;
+  --bg:#FBFBFD; --stage:#FFFFFF; --surface:#F5F6F8; --surface-2:#EEF0F3;
+  --tx:#1A1A2E; --tx-2:#5B6472; --tx-3:#8A93A3; --bd:#E6E8EC;
+  --ok:#10B981; --shadow:0 1px 3px rgba(16,24,40,.06),0 10px 30px -12px rgba(16,24,40,.18);
+  --shadow-lg:0 30px 60px -20px rgba(23,16,60,.34);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,'SF Mono',Menlo,monospace;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0C0E14; --stage:#12151D; --surface:#171B24; --surface-2:#1E232E;
+  --tx:#EEF1F6; --tx-2:#A6AEBC; --tx-3:#727B8A; --bd:#262C38; --p-50:#1B1830;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 12px 34px -14px rgba(0,0,0,.6); --shadow-lg:0 34px 70px -24px rgba(0,0,0,.7);
+}}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:radial-gradient(1200px 600px at 78% -8%,var(--p-50),transparent 60%),var(--bg);color:var(--tx);font-family:var(--font);line-height:1.55;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;min-height:100%}
+.wrap{flex:1;display:flex;flex-direction:column;max-width:1000px;margin:0 auto;width:100%;padding:26px 24px 40px}
+
+/* re-engagement banner */
+#zovo-reengage-banner{
+  display:none; align-items:center; gap:10px;
+  padding:11px 16px; border-radius:12px; margin-bottom:22px;
+  background:var(--p-50); color:var(--tx);
+  font-size:14px; font-weight:500;
+  border:1px solid color-mix(in srgb,var(--p) 22%,transparent);
+}
+#zovo-reengage-banner.on{display:flex}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+.mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(145deg,var(--p),#8B7CF0);display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;box-shadow:0 4px 12px -2px rgba(108,92,231,.5)}
+.brand{font-weight:700;letter-spacing:-.01em}.brand span{color:var(--tx-3);font-weight:500}
+.rail{margin-left:auto;display:flex;gap:7px;align-items:center}
+.dot{width:26px;height:4px;border-radius:9999px;background:var(--bd);transition:background .3s,width .3s}
+.dot.done{background:var(--p)}.dot.now{background:var(--p);width:40px}
+.skip{margin-left:14px;font-size:12.5px;color:var(--tx-3);background:none;border:none;cursor:pointer;font-family:inherit}
+.skip:hover{color:var(--tx-2)}
+
+/* stage */
+.stage{flex:1;display:flex;align-items:center;justify-content:center}
+.step{display:none;width:100%;animation:rise .45s cubic-bezier(.2,.7,.3,1)}
+.step.on{display:block}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.grid{display:grid;grid-template-columns:1.02fr .98fr;gap:44px;align-items:center}
+@media(max-width:820px){.grid{grid-template-columns:1fr;gap:26px}.visual{order:-1}}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--p);margin-bottom:14px}
+h1{font-size:40px;line-height:1.08;letter-spacing:-.025em;font-weight:800;text-wrap:balance;margin-bottom:16px}
+@media(max-width:820px){h1{font-size:31px}}
+.lede{font-size:17px;color:var(--tx-2);max-width:30ch}
+.lede.wide{max-width:46ch}
+.pt{margin-top:16px;color:var(--tx-2);max-width:46ch}
+.kbd{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--bd);border-bottom-width:2px;border-radius:6px;padding:2px 7px;color:var(--tx)}
+
+/* visual card */
+.visual{background:var(--stage);border:1px solid var(--bd);border-radius:18px;box-shadow:var(--shadow);padding:22px;min-height:300px;display:flex;flex-direction:column;justify-content:center}
+.mockhd{display:flex;gap:6px;margin-bottom:16px}
+.mockhd i{width:10px;height:10px;border-radius:50%;background:var(--surface-2)}
+
+/* step 2 paste pad + tree + network badge */
+.paste-wrap{display:flex;flex-direction:column;gap:10px}
+.paste-area{
+  width:100%; min-height:96px; resize:vertical;
+  font-family:var(--mono); font-size:12.5px; line-height:1.5;
+  padding:10px 12px; color:var(--tx);
+  background:var(--surface); border:1px solid var(--bd); border-radius:10px;
+}
+.paste-area:focus-visible{outline:none;border-color:var(--p);box-shadow:0 0 0 3px var(--p-50)}
+.tree-out{
+  font-family:var(--mono); font-size:12.5px; line-height:1.5;
+  white-space:pre-wrap; word-break:break-all;
+  padding:12px 14px; background:var(--surface); color:var(--tx);
+  border-radius:10px; border:1px solid var(--bd);
+  max-height:220px; overflow:auto;
+}
+.tree-line{display:block}
+.tree-key{color:var(--p)}
+.tree-str{color:#0B7A5F}
+@media(prefers-color-scheme:dark){.tree-str{color:#34D8B4}}
+.tree-num{color:#B25600}
+@media(prefers-color-scheme:dark){.tree-num{color:#F0A25F}}
+.net-badge{
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:12px; font-weight:600; color:#068A8B;
+  background:rgba(0,210,211,.12); border:1px solid rgba(0,210,211,.28);
+  padding:5px 11px; border-radius:9999px; margin-top:4px;
+}
+@media(prefers-color-scheme:dark){.net-badge{color:#22D3D4}}
+.net-badge .dot-pulse{
+  width:7px;height:7px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 0 0 rgba(0,210,211,.7); animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(0,210,211,.55)}
+  70%{box-shadow:0 0 0 8px rgba(0,210,211,0)}
+  100%{box-shadow:0 0 0 0 rgba(0,210,211,0)}
+}
+
+/* step 3 — indent + theme + host grant */
+.choice-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:10px 0 16px}
+.choice{
+  padding:14px 12px; text-align:center;
+  border:1px solid var(--bd); border-radius:10px; background:var(--surface);
+  cursor:pointer; font-size:13px; font-weight:600; color:var(--tx-2);
+  transition:border-color .15s,background .15s,color .15s;
+}
+.choice:hover{border-color:var(--p)}
+.choice[aria-checked=true]{border-color:var(--p);background:var(--p-50);color:var(--tx)}
+.choice .preview{
+  display:block; font-family:var(--mono); font-size:11px;
+  color:var(--tx-3); margin-top:6px; font-weight:400; white-space:pre;
+}
+.host-card{
+  margin-top:16px; padding:16px 18px;
+  border:1px solid var(--bd); border-radius:12px; background:var(--surface);
+}
+.host-card h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.host-card p{font-size:13px;color:var(--tx-2);margin-bottom:12px}
+.host-status{font-size:12.5px;margin-top:10px;min-height:18px;color:var(--tx-2)}
+.host-status.ok{color:var(--ok);font-weight:600}
+.host-status.err{color:var(--tx-3)}
+
+/* step 4 — trust */
+.trust{display:flex;flex-direction:column;gap:12px}
+.trow{display:flex;gap:13px;align-items:flex-start}
+.tico{flex:none;width:38px;height:38px;border-radius:10px;background:var(--p-50);color:var(--p);display:grid;place-items:center;font-size:17px}
+.trow h4{font-size:14.5px;font-weight:700;margin-bottom:1px}
+.trow p{font-size:13px;color:var(--tx-2)}
+.trow p a{font-size:13px}
+.stats{display:flex;gap:26px;margin:22px 0 2px}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-size:25px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--tx);line-height:1.1}
+.stats span{font-size:11.5px;color:var(--tx-3);margin-top:2px}
+.morelinks{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:13px}
+
+/* step 5 — pricing */
+.plans{display:grid;grid-template-columns:1fr 1.25fr;gap:16px}
+@media(max-width:820px){.plans{grid-template-columns:1fr}}
+.plan{border:1px solid var(--bd);border-radius:16px;padding:22px;background:var(--stage);position:relative}
+.plan.hero{border:2px solid var(--gold);box-shadow:var(--shadow-lg)}
+.plan .pn{font-size:13px;font-weight:700;color:var(--tx-2);text-transform:uppercase;letter-spacing:.06em}
+.price{font-size:44px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:8px 0 2px}
+.price small{font-size:15px;font-weight:600;color:var(--tx-3)}
+.plan ul{list-style:none;margin:16px 0 0;display:flex;flex-direction:column;gap:9px}
+.plan li{font-size:13.5px;padding-left:24px;position:relative;color:var(--tx-2)}
+.plan li::before{content:"";position:absolute;left:0;top:5px;width:15px;height:15px;border-radius:50%;background:var(--ok);opacity:.16}
+.plan li::after{content:"";position:absolute;left:5px;top:6px;width:4px;height:8px;border:solid var(--ok);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.ribbon{position:absolute;top:-11px;right:18px;background:var(--gold);color:var(--on-gold);font-size:11px;font-weight:800;padding:3px 11px;border-radius:9999px;letter-spacing:.02em}
+.guar{font-size:12.5px;color:var(--tx-3);margin-top:14px;text-align:center}
+
+/* step 6 — close */
+.cheat{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cheat .row{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--bd);border-radius:9px;padding:9px 12px}
+.cheat .row span{font-size:13px;color:var(--tx-2)}
+.sign{margin-top:18px;padding:16px 18px;background:var(--surface);border:1px solid var(--bd);border-radius:13px;font-size:14px;color:var(--tx-2)}
+.sign b{color:var(--tx);font-weight:700}
+.sign h4{font-size:13px;margin-bottom:7px;color:var(--tx);font-weight:700}
+
+/* nav */
+.nav{display:flex;align-items:center;gap:12px;margin-top:30px}
+.btn{font-family:inherit;font-size:15px;font-weight:600;border-radius:10px;padding:13px 24px;cursor:pointer;border:1px solid transparent;transition:transform .12s,box-shadow .2s,background .2s}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--p-50),0 0 0 5px var(--p)}
+.btn--primary{background:var(--p);color:#fff}.btn--primary:hover{background:var(--p-dark)}
+.btn--pro{background:linear-gradient(145deg,var(--gold),var(--gold-dark));color:var(--on-gold);box-shadow:0 8px 20px -6px rgba(245,158,11,.55)}
+.btn--pro:hover{filter:brightness(1.04)}
+.btn--ghost{background:transparent;color:var(--tx-2);border-color:var(--bd)}.btn--ghost:hover{color:var(--tx);border-color:var(--tx-3)}
+.btn--secondary{background:var(--surface);color:var(--tx);border-color:var(--bd)}
+.btn--secondary:hover{background:var(--surface-2)}
+.spacer{flex:1}
+.stepno{font-size:12.5px;color:var(--tx-3);font-variant-numeric:tabular-nums}
+a{color:var(--p);text-decoration:none;font-weight:600}a:hover{text-decoration:underline}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head>
+<body>
+<div class="wrap">
+
+  <div id="zovo-reengage-banner" role="status">
+    <span aria-hidden="true" style="font-size:16px">&#8635;</span>
+    <span id="zovo-reengage-text">Welcome back. Pick up where you left off.</span>
+  </div>
+
+  <div class="top">
+    <div class="mark">{ }</div>
+    <div class="brand">CleanJSON <span>by Zovo</span></div>
+    <div class="rail" id="rail" aria-hidden="true"></div>
+    <button class="skip" id="skip" type="button">Skip intro</button>
+  </div>
+
+  <div class="stage">
+
+    <!-- 1. THE PROBLEM -->
+    <section class="step on" data-step="0">
+      <div class="grid">
+        <div>
+          <div class="eyebrow">The part nobody talks about</div>
+          <h1>Pasting your API response into a random website is a habit worth breaking.</h1>
+          <p class="lede wide">JSON on the web is dense, single-line, and ugly. So developers paste it into the first free formatter that ranks on Google. Most of those sites log what you paste. Your response bodies, error payloads, and customer records travel to a server you have never audited.</p>
+          <p class="pt">CleanJSON formats it in your browser. No tab opened, no request on the network, no clipboard sent anywhere. It is the version of that habit that does not leak.</p>
+        </div>
+        <div class="visual">
+          <div class="mockhd"><i></i><i></i><i></i></div>
+          <div style="font-family:var(--mono);font-size:12.5px;color:var(--tx-3);line-height:1.6">
+            <div style="color:var(--tx-2);margin-bottom:6px;font-family:var(--font);font-size:12px">$ curl https://api.yoursite.com/user</div>
+            <div style="color:var(--tx)">{"id":8421,"name":"Avery Okonkwo","email":"avery@yoursite.com","plan":"pro","scopes":["read","write"],"meta":{"created":"2026-03-14","lastSeen":"2026-07-08"}}</div>
+            <div style="margin-top:14px;color:var(--tx-3);font-family:var(--font);font-size:12px">One line. Six nested keys. Now what?</div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:7px;flex-wrap:wrap">
+            <span class="net-badge"><span class="dot-pulse"></span> 0 requests on the network</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. INSTANT WIN -->
+    <section class="step" data-step="1">
+      <div class="grid">
+        <div>
+          <div class="eyebrow">See it now</div>
+          <h1>Paste anything. It formats inside this tab.</h1>
+          <p class="lede wide">Edit the JSON on the right and the tree below rebuilds on every keystroke. Open DevTools, go to Network, and watch. Zero requests fire while you type. That is the whole proof.</p>
+          <button class="btn btn--ghost" id="loadSampleBtn" type="button" style="margin-top:18px">Load a bigger sample</button>
+        </div>
+        <div class="visual">
+          <div class="mockhd"><i></i><i></i><i></i></div>
+          <div class="paste-wrap">
+            <textarea id="zovo-sample-paste" class="paste-area" spellcheck="false" autocomplete="off" placeholder="Paste JSON here">{"user":{"id":8421,"name":"Avery Okonkwo","plan":"pro"},"scopes":["read","write"],"meta":{"created":"2026-03-14"}}</textarea>
+            <pre id="zovo-sample-out" class="tree-out" aria-live="polite"></pre>
+            <span class="net-badge" aria-hidden="false"><span class="dot-pulse"></span> 0 network requests during this</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. FIRST-USE INVESTMENT -->
+    <section class="step" data-step="2">
+      <div class="grid">
+        <div>
+          <div class="eyebrow">Make it yours</div>
+          <h1>Pick a style. You will see it every time you paste.</h1>
+          <p class="lede wide">Two taps and the extension remembers. Indent, theme, and whether raw <code style="font-family:var(--mono);font-size:12.5px">.json</code> URLs should auto-format in the tab.</p>
+          <p class="pt">Everything you choose here is saved in browser storage on this device. There is no account, no sync server, no telemetry.</p>
+        </div>
+        <div class="visual">
+          <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-2);margin-bottom:8px">Indent</div>
+          <div class="choice-row" id="indentRow" role="radiogroup" aria-label="Indent size">
+            <button class="choice" type="button" role="radio" data-indent="2" aria-checked="true">2 spaces<span class="preview">{<br>&nbsp;&nbsp;"a": 1<br>}</span></button>
+            <button class="choice" type="button" role="radio" data-indent="4" aria-checked="false">4 spaces<span class="preview">{<br>&nbsp;&nbsp;&nbsp;&nbsp;"a": 1<br>}</span></button>
+            <button class="choice" type="button" role="radio" data-indent="tab" aria-checked="false">Tab<span class="preview">{<br>&nbsp;&nbsp;&nbsp;&nbsp;"a": 1<br>}</span></button>
+          </div>
+          <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx-2);margin-bottom:8px">Theme</div>
+          <div class="choice-row" id="themeRow" role="radiogroup" aria-label="Theme">
+            <button class="choice" type="button" role="radio" data-theme="light" aria-checked="false">Light<span class="preview">&nbsp;</span></button>
+            <button class="choice" type="button" role="radio" data-theme="dark" aria-checked="false">Dark<span class="preview">&nbsp;</span></button>
+            <button class="choice" type="button" role="radio" data-theme="system" aria-checked="true">Match system<span class="preview">&nbsp;</span></button>
+          </div>
+          <div class="host-card">
+            <h4>Auto-format raw JSON pages everywhere</h4>
+            <p>Off by default. When on, CleanJSON rewrites <code style="font-family:var(--mono);font-size:12px">application/json</code> responses in the tab so you never need the paste-pad again.</p>
+            <button class="btn btn--secondary" id="zovo-grant-btn" type="button" style="width:100%">Enable auto-format on all sites</button>
+            <div class="host-status" id="zovo-grant-status">Paste-pad works without this. Your call.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TRUST + ZOVO STORY -->
+    <section class="step" data-step="3">
+      <div class="grid">
+        <div>
+          <div class="eyebrow">Why you can paste anything in here</div>
+          <h1>Local by design, from one developer you can reach.</h1>
+          <p class="lede wide">Your payloads never leave your machine. The extension makes no server call to format a document, and the code is small enough to read in an afternoon.</p>
+          
+          <p class="pt">A JSON formatter is where you meet Zovo. The bigger idea is an honest layer for the whole extension world, one tool at a time, no SEO spam and no tracking.</p>
+          <div class="morelinks">
+            <a href="https://zovo.one/why?ref=cleanjson" target="_blank" rel="noopener">Why I build Zovo</a>
+            <a href="https://zovo.one/vision?ref=cleanjson" target="_blank" rel="noopener">The vision</a>
+            <a href="https://zovo.one/how-we-keep-you-safe?ref=cleanjson" target="_blank" rel="noopener">How we keep you safe</a>
+          </div>
+        </div>
+        <div class="visual">
+          <div class="trust">
+            <div class="trow"><div class="tico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div><div><h4>Everything stays on your device</h4><p>Payloads live in browser memory, then disappear when the tab closes. No account, no sync server, nothing sent anywhere.</p></div></div>
+            <div class="trow"><div class="tico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg></div><div><h4>Built by an independent developer</h4><p>CleanJSON is made and maintained by one developer who ships in the open. That is who built the tool formatting your payloads. <a href="https://zovo.one/how-we-keep-you-safe?ref=cleanjson" target="_blank" rel="noopener">See how it works</a>.</p></div></div>
+            <div class="trow"><div class="tico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div><div><h4>One person, building in the open</h4><p>Not a faceless company. A developer who ships in public, uses these tools daily, and answers you directly at <a href="https://github.com/theluckystrike" target="_blank" rel="noopener">github.com/theluckystrike</a>.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. OFFER -->
+    <section class="step" data-step="4">
+      <div style="text-align:center;max-width:620px;margin:0 auto 22px">
+        <div class="eyebrow" style="text-align:center">The honest trade</div>
+        <h1 style="font-size:34px">Free stays useful. Or own it all, once.</h1>
+        <p class="lede wide" style="margin:0 auto">Formatting and the collapsible tree stay free, forever. One payment of ninety-nine dollars turns on JSONPath, diff, snippets, and export in CleanJSON.</p>
+      </div>
+      <div class="plans">
+        <div class="plan">
+          <div class="pn">Free</div>
+          <div class="price">$0<small> forever</small></div>
+          <ul>
+            <li>Format and validate any JSON, no size limit under 5 MB</li>
+            <li>Collapsible tree with search</li>
+            <li>2-space, 4-space, and tab indent</li>
+            <li>Auto-format raw JSON pages (optional)</li>
+            <li>Works offline, no account</li>
+          </ul>
+        </div>
+        <div class="plan hero">
+          <div class="ribbon">One payment, every tool</div>
+          <div class="pn" style="color:var(--gold-dark)">Lifetime</div>
+          <div class="price">$99<small> one time</small></div>
+          <ul>
+            <li>JSONPath queries on any payload</li>
+            <li>Side-by-side JSON diff</li>
+            <li>Reusable snippets library</li>
+            <li>Export to CSV, TypeScript types, and Markdown</li>
+            <li>Every future CleanJSON Pro feature included</li>
+          </ul>
+          <a class="btn btn--pro" href="https://zovo.one/pricing?utm_source=cleanjson&utm_medium=extension&utm_campaign=upgrade&utm_content=onboarding_offer" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:18px">Get lifetime for $99</a>
+          <p class="guar">14-day refund, no questions. Prefer monthly? It is $4.99 on the same page.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. CLOSE -->
+    <section class="step" data-step="5">
+      <div class="grid">
+        <div>
+          <div class="eyebrow">You are set</div>
+          <h1>Paste your first JSON. That is the whole tool.</h1>
+          <p class="lede wide">Pin the extension, click the icon, paste. Or skip the icon and use the context menu on any selected JSON. Here is what is worth remembering.</p>
+          <div class="sign">
+            <h4>From the developer</h4>
+            I build Zovo on my own, in the open. If CleanJSON saves you a tab switch today, a short review does more than you would guess. If something breaks, write to me and I answer within twenty-four hours. Extensions are only the start. The plan is an honest layer for the whole browser, and your ninety-nine dollars helps ship the next piece of it.
+            <div class="morelinks" style="margin-top:13px">
+              <a href="https://github.com/theluckystrike" target="_blank" rel="noopener">Reach me on GitHub</a>
+              <a href="https://zovo.one/vision?ref=cleanjson" target="_blank" rel="noopener">Where this is going</a>
+            </div>
+          </div>
+        </div>
+        <div class="visual">
+          <div class="cheat">
+            <div class="row"><span>Open the paste-pad</span><span class="kbd">Click icon</span></div>
+            <div class="row"><span>Format selected JSON</span><span class="kbd">Right-click</span></div>
+            <div class="row"><span>Search the tree</span><span class="kbd">Ctrl + F</span></div>
+            <div class="row"><span>Collapse everything</span><span class="kbd">Alt + 0</span></div>
+          </div>
+          <p class="pt" style="margin-top:16px">Your one-time payment unlocks every Pro feature in CleanJSON. <a href="https://zovo.one?ref=cleanjson" target="_blank" rel="noopener">See what is included</a>.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="nav">
+    <button class="btn btn--ghost" id="back" type="button" style="visibility:hidden">Back</button>
+    <span class="stepno" id="stepno">1 of 6</span>
+    <span class="spacer"></span>
+    <button class="btn btn--primary" id="next" type="button">Next</button>
+  </div>
+</div>
+
+<script type="module" src="../../onboarding.js"></script>
+</body></html>

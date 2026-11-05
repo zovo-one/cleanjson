@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — offline-JSON-katselin ja muotoilija"
+  },
+  "extDesc": {
+    "message": "Muotoile ja validoi JSONia offline. Puunäkymä, syntaksikorostus, kopiointi klikkauksella. Mikään ei lähde selaimesta."
+  }
+}

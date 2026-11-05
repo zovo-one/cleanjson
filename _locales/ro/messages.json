@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — Vizualizator și formatator JSON offline"
+  },
+  "extDesc": {
+    "message": "Formatează, validează și explorează JSON offline. Vizualizare arbore, evidențiere sintaxă, copiere dintr-un clic."
+  }
+}

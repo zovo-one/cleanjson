@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "CleanJSON — offline JSON-megjelenítő és formázó"
+  },
+  "extDesc": {
+    "message": "Formázza és ellenőrizze a JSON-t offline. Fanézet, szintaxiskiemelés, másolás egy kattintással. Semmi nem hagyja el a böngészőt."
+  }
+}

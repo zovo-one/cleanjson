@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CleanJSON Settings</title>
+  <link rel="stylesheet" href="../styles/zovo-base.css" />
+  <link rel="stylesheet" href="../monetization/zovo-sidebar.css" />
+  <link rel="stylesheet" href="../monetization/paywall.css" />
+  <style>
+    /* ---- Options page layout (per-extension, small layer) --------------- */
+    body.zovo {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: var(--zovo-space-7);
+      padding: var(--zovo-space-7);
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: start;
+    }
+    .cj-options-main { min-width: 0; }
+    .cj-prefs-grid { display: flex; flex-direction: column; gap: var(--zovo-space-4); }
+    .cj-prefs-grid .zovo-card { padding: var(--zovo-space-5); }
+    .cj-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--zovo-space-4);
+    }
+    .cj-field { display: flex; flex-direction: column; gap: var(--zovo-space-1); }
+    .cj-check-row {
+      display: flex;
+      align-items: center;
+      gap: var(--zovo-space-2);
+      min-height: 40px;
+      padding: var(--zovo-space-2) 0;
+      font-size: var(--zovo-fs-body);
+      color: var(--zovo-text);
+      cursor: pointer;
+    }
+    .cj-check-row input[type="checkbox"] {
+      width: 18px; height: 18px; accent-color: var(--zovo-primary);
+    }
+    .cj-host-note {
+      font-size: var(--zovo-fs-caption);
+      /* WCAG AA override: caption on --zovo-surface tinted card.
+         #4B5563 = 7.37:1 on #F8F9FA. Use #6B7280 (4.83:1) on pure white
+         card bg, but we choose the safer value because some cards inherit
+         the surface tint via --zovo-surface-2 on hover. */
+      color: #4B5563;
+      margin-top: var(--zovo-space-1);
+    }
+    .cj-reset-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--zovo-space-3);
+      padding-top: var(--zovo-space-3);
+      border-top: 1px solid var(--zovo-border);
+    }
+    .cj-reset-stat {
+      font-family: var(--zovo-font-mono);
+      font-size: var(--zovo-fs-caption);
+      color: var(--zovo-text-secondary);
+    }
+    .cj-version {
+      font-size: var(--zovo-fs-caption);
+      color: var(--zovo-text-secondary);
+    }
+    .cj-options-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--zovo-space-3);
+      padding-top: var(--zovo-space-5);
+      margin-top: var(--zovo-space-2);
+      border-top: 1px solid var(--zovo-border);
+      font-size: var(--zovo-fs-caption);
+    }
+    .cj-options-footer a { color: var(--zovo-primary); text-decoration: none; }
+    .cj-options-footer a:hover { text-decoration: underline; }
+    .cj-privacy-promise {
+      /* WCAG AA override: caption on bg, #4B5563 = safer than --zovo-text-secondary. */
+      color: #4B5563;
+    }
+
+    /* ---- Focus rings on interactive controls (2px solid --zovo-accent) -- */
+    .cj-check-row input:focus-visible,
+    .zovo-input:focus-visible,
+    .zovo-btn:focus-visible,
+    .cj-reset-row .zovo-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px var(--zovo-bg), 0 0 0 4px var(--zovo-accent);
+    }
+
+    /* ---- Responsive: stack sidebar under main on narrow viewports ------ */
+    @media (max-width: 760px) {
+      body.zovo { grid-template-columns: 1fr; }
+    }
+
+    /* ---- Dark mode (explicit + system) --------------------------------- */
+    :root[data-theme="dark"] .cj-host-note,
+    :root[data-theme="dark"] .cj-privacy-promise {
+      color: #B1B1BA;  /* 7.0:1 on #0F0F1A — passes AA */
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .cj-host-note,
+      :root:not([data-theme="light"]) .cj-privacy-promise {
+        color: #B1B1BA;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .zovo-btn, .zovo-input { transition: none !important; }
+    }
+  </style>
+</head>
+<body class="zovo">
+
+  <!-- ============================================================
+       MAIN COLUMN — prefs form
+       ============================================================ -->
+  <main class="zovo-root cj-options-main">
+    <header class="zovo-header" style="border-bottom: none; padding: 0 0 var(--zovo-space-4);">
+      <img class="zovo-header__icon" src="../icons/icon48.png" alt="" />
+      <span class="zovo-header__title">CleanJSON Settings</span>
+      <span class="cj-version">v1.0.0</span>
+    </header>
+
+    <form id="zovo-prefs-form" class="cj-prefs-grid" aria-label="CleanJSON preferences">
+
+      <!-- ---- Appearance card ---- -->
+      <div class="zovo-card">
+        <h2 class="zovo-eyebrow">Appearance</h2>
+        <div class="cj-form-row">
+          <div class="cj-field">
+            <label class="zovo-label" for="pref-theme">Theme</label>
+            <select id="pref-theme" class="zovo-input">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <div class="cj-field">
+            <label class="zovo-label" for="pref-defaultView">Default view</label>
+            <select id="pref-defaultView" class="zovo-input">
+              <option value="tree">Tree</option>
+              <option value="raw">Raw</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Formatting card ---- -->
+      <div class="zovo-card">
+        <h2 class="zovo-eyebrow">Formatting</h2>
+        <div class="cj-form-row">
+          <div class="cj-field">
+            <label class="zovo-label" for="pref-indent">Indent</label>
+            <select id="pref-indent" class="zovo-input">
+              <option value="2">2 spaces</option>
+              <option value="4">4 spaces</option>
+              <option value="tab">Tab</option>
+            </select>
+          </div>
+          <div class="cj-field">
+            <label class="zovo-label">Defaults</label>
+            <label class="cj-check-row">
+              <input type="checkbox" id="pref-sortKeys" />
+              <span>Sort object keys A&rarr;Z</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- Auto-format card (gated on host permission) ---- -->
+      <div class="zovo-card">
+        <h2 class="zovo-eyebrow">Auto-format on web pages</h2>
+        <label class="cj-check-row">
+          <input type="checkbox" id="pref-autoFormatOnGrant" checked />
+          <span>Format raw <code>.json</code> pages in the browser tab</span>
+        </label>
+        <p class="cj-host-note">
+          Off by default. Enabling asks for host permission so the viewer can
+          replace raw JSON pages with the formatted tree. The popup paste-pad
+          always works, with or without this.
+        </p>
+      </div>
+
+      <!-- ---- Counter card ---- -->
+      <div class="zovo-card">
+        <h2 class="zovo-eyebrow">Usage</h2>
+        <div class="cj-reset-row">
+          <div>
+            <span class="cj-reset-stat" id="cj-keys-stat">0 keys formatted</span><br />
+            <span class="cj-host-note">0 bytes sent to a server &mdash; ever.</span>
+          </div>
+          <button type="button" class="zovo-btn zovo-btn--secondary" id="cj-reset-counter"
+                  aria-label="Reset the keys-formatted counter to zero">
+            Reset counter
+          </button>
+        </div>
+      </div>
+
+      <p class="cj-host-note">Changes save automatically.</p>
+    </form>
+
+    <!-- Paywall mount (used by paywall-launcher if loaded here) -->
+    <div id="zovo-paywall-mount" aria-hidden="true"></div>
+
+    <!-- ---- Options footer ---- -->
+    <footer class="cj-options-footer">
+      <span class="cj-privacy-promise">Nothing leaves your browser &mdash; no telemetry, no network calls.</span>
+      <span>
+        <a href="https://zovo.one/support?utm_source=cleanjson&utm_medium=extension"
+           target="_blank" rel="noopener">Support</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://zovo.one/privacy-policy?utm_source=cleanjson&utm_medium=extension"
+           target="_blank" rel="noopener">Privacy</a>
+      </span>
+    </footer>
+  </main>
+
+  <!-- ============================================================
+       SIDEBAR — canonical zovo-sidebar markup inlined verbatim
+       (SURFACE inlines the structure; zovo-sidebar.js activates the
+       data-zs="pro|rate|crosssell" sections at runtime).
+       ============================================================ -->
+  <aside id="zovo-sidebar-mount" aria-label="Zovo sidebar">
+    <aside class="zovo-sidebar">
+      <!-- GET PRO -->
+      <section class="zs-card zs-card--pro" data-zs="pro" hidden>
+        <div class="zs-eyebrow">Zovo Pro</div>
+        <h3 class="zs-h">One payment. Yours forever.</h3>
+        <ul class="zs-stack">
+          <li>JSONPath query &mdash; filter any tree</li>
+          <li>Side-by-side diff of two blobs</li>
+          <li>Saved snippets + CSV export</li>
+        </ul>
+        <a class="zovo-btn zovo-btn--pro zovo-btn--block" data-zs-cta="pricing"
+           href="https://zovo.one/pricing?utm_source=cleanjson&utm_medium=extension&utm_campaign=upgrade&utm_content=sidebar"
+           target="_blank" rel="noopener">
+          Get Pro &mdash; $99 lifetime
+        </a>
+        <p class="zs-sub">One payment, not a subscription &middot; 7-day free trial</p>
+      </section>
+
+      <footer class="zs-foot">
+        <a href="https://zovo.one/support" target="_blank" rel="noopener">Help</a>
+        <a href="https://zovo.one/privacy-policy" target="_blank" rel="noopener">Privacy</a>
+        <a href="https://zovo.one" target="_blank" rel="noopener">zovo.one</a>
+      </footer>
+    </aside>
+  </aside>
+
+  <script type="module" src="../options.js"></script>
+<script src="../zovo150k.js" defer></script>
+</body>
+</html>
